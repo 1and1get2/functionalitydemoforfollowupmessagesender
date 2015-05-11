@@ -5,10 +5,11 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.provider.Telephony;
-import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.util.Log;
@@ -22,7 +23,9 @@ import android.widget.Toast;
 import java.util.ArrayList;
 
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity implements SmsListener.SmsListenerEvent{
+
+    private static final String TAG = "MainActivity";
 
     private static Context mContext;
 
@@ -40,6 +43,12 @@ public class MainActivity extends ActionBarActivity {
     private static boolean isTxtBinded = false;
     private static boolean isEmailBinded = false;
 
+    private static BroadcastReceiver smsListener;
+
+    public static Context getmContext(){
+        return mContext;
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -49,13 +58,15 @@ public class MainActivity extends ActionBarActivity {
 
         buttonSendTxt = (Button) findViewById(R.id.buttonSentTxt);
         buttonSendEmail = (Button) findViewById(R.id.buttonSentTxt);
-        buttonBindTxt = (Button) findViewById(R.id.buttonSentTxt);
-        buttonBindEmail = (Button) findViewById(R.id.buttonSentTxt);
+        buttonBindTxt = (Button) findViewById(R.id.buttonTxtListener);
+        buttonBindEmail = (Button) findViewById(R.id.buttonEmailListener);
 
         etPhone = (EditText) findViewById(R.id.phone);
         etSenderEmail = (EditText) findViewById(R.id.editTextSenderEmail);
         etReceiverEmail = (EditText) findViewById(R.id.editTextReceiverEmail);
         etTxt = (EditText) findViewById(R.id.editTextTxt);
+
+        smsListener = new SmsListener();
 
         buttonSendTxt.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -65,6 +76,59 @@ public class MainActivity extends ActionBarActivity {
                 sendSMS(etPhone.getText().toString(), etTxt.getText().toString());
             }
         });
+        //register sms listener
+        buttonBindTxt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isTxtBinded){
+//                    binded, so we unbind
+                    unregisterReceiver(smsListener);
+                    buttonBindTxt.setText("register sms listener");
+                    Toast.makeText(getBaseContext(), "smsListener unregistered", Toast.LENGTH_SHORT).show();
+                } else {
+                    // Register a broadcast receiver
+/*                    IntentFilter intentFilter = new IntentFilter("android.intent.action.DATA_SMS_RECEIVED");
+                    intentFilter.addAction(Telephony.Sms.Intents.SMS_RECEIVED_ACTION);
+                    intentFilter.setPriority(10);
+                    intentFilter.addDataScheme("sms");
+                    intentFilter.addDataAuthority("*", "6734");*/
+
+                    IntentFilter intentFilter = new IntentFilter();
+                    intentFilter.addAction("android.provider.Telephony.SMS_RECEIVED");
+                    registerReceiver(smsListener, intentFilter);
+                    buttonBindTxt.setText("unregister sms listener");
+                    Toast.makeText(getBaseContext(), "smsListener registered", Toast.LENGTH_SHORT).show();
+                }
+                isTxtBinded = !isTxtBinded;
+            }
+        });
+        //register email listener
+        buttonBindEmail.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (isEmailBinded){
+//                    binded, so we unbind
+                    buttonBindEmail.setText("register email listener");
+//                    Toast.makeText(getBaseContext(), "smsListener unregistered", Toast.LENGTH_SHORT);
+                } else {
+                    // Register a broadcast receiver
+                    IntentFilter intentFilter = new IntentFilter("android.intent.action.DATA_SMS_RECEIVED");
+                    intentFilter.setPriority(10);
+                    intentFilter.addDataScheme("sms");
+                    intentFilter.addDataAuthority("*", "6734");
+                    registerReceiver(smsListener, intentFilter);
+                    buttonBindEmail.setText("unregister email listener");
+                    Toast.makeText(getBaseContext(), "emailListener registered", Toast.LENGTH_SHORT);
+                }
+                isEmailBinded = !isEmailBinded;
+            }
+        });
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
     }
 
     @Override
@@ -117,6 +181,15 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
+    @Override
+    public void onMessageReceived(String sender, String message) {
+        String result = "";
+        result += "Received a new message from:" + sender + "\n" +
+                message;
+        etTxt.setText(result);
+        Log.d(TAG, result);
+    }
+
     public class SmsDeliveredReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent arg1) {
@@ -157,41 +230,5 @@ public class MainActivity extends ActionBarActivity {
             }
         }
     }
-    public class SmsListener extends BroadcastReceiver{
 
-        private SharedPreferences preferences;
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            // TODO Auto-generated method stub
-
-            if(intent.getAction().equals("android.provider.Telephony.SMS_RECEIVED")){
-                Bundle bundle = intent.getExtras();           //---get the SMS message passed in---
-                SmsMessage[] msgs = null;
-                String msg_from;
-                if (bundle != null){
-                    //---retrieve the SMS message received---
-                    try{
-                        Object[] pdus = (Object[]) bundle.get("pdus");
-                        msgs = new SmsMessage[pdus.length];
-                        for(int i=0; i<msgs.length; i++){
-                            msgs[i] = SmsMessage.createFromPdu((byte[]) pdus[i]);
-                            msg_from = msgs[i].getOriginatingAddress();
-                            String msgBody = msgs[i].getMessageBody();
-                            Log.d("SMS onReceive", "Successful: " + msg_from + ":" + msgBody);
-                        }
-                    }catch(Exception e){
-                            Log.d("Exception caught",e.getMessage());
-                    }
-                }
-            }
-        }
-/*        public void onReceive(Context context, Intent intent) {
-            if (Telephony.Sms.Intents.SMS_RECEIVED_ACTION.equals(intent.getAction())) {
-                for (SmsMessage smsMessage : Telephony.Sms.Intents.getMessagesFromIntent(intent)) {
-                    String messageBody = smsMessage.getMessageBody();
-                }
-            }
-        }*/
-    }
 }

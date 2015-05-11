@@ -74,13 +74,13 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="active txt listener"
+            android:text="register sms listener"
             android:id="@+id/buttonTxtListener" />
 
         <Button
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="active email listener"
+            android:text="register email listener"
             android:id="@+id/buttonEmailListener"
             android:layout_gravity="center_horizontal" />
     </LinearLayout>
