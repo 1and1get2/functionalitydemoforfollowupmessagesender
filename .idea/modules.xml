@@ -2,8 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/FunctionalityDemo.iml" filepath="$PROJECT_DIR$/FunctionalityDemo.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/functionalitydemoforfollowupmessagesender.iml" filepath="$PROJECT_DIR$/functionalitydemoforfollowupmessagesender.iml" />
     </modules>
   </component>
 </project>
