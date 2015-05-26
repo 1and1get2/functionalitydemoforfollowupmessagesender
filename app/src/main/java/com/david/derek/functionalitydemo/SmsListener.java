@@ -58,7 +58,7 @@ public class SmsListener extends BroadcastReceiver {
 /*                SmsListenerEvent sle = ((SmsListenerEvent)MainActivity.getmContext());
                 sle.onMessageReceived(
                         sender, messageBody);*/
-
+                ((MainActivity)context).onMessageReceived(sender, messageBody);
 
                 Log.d(TAG, "Successful: " + smsMessage.getDisplayOriginatingAddress() + ":" + messageBody);
             }
